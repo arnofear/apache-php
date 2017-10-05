@@ -9,6 +9,7 @@ RUN apt-get update \
 && docker-php-ext-install opcache pdo_mysql mysqli gd exif zip bz2 ldap bcmath calendar mcrypt xsl xmlrpc soap tidy sockets gettext >/dev/null \
 && pecl install apcu \
 && docker-php-ext-enable apcu \
+&& echo 'extension=apcu.so' > /usr/local/etc/php/conf.d/apcu.ini \
 && a2enmod rewrite headers \
 && a2dismod status \
 && apt-get clean ; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/cache/* /usr/share/doc/*
