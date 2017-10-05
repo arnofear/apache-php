@@ -7,8 +7,9 @@ RUN apt-get update \
 && docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/ >/dev/null \
 && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ >/dev/null \
 && docker-php-ext-install opcache pdo_mysql mysqli gd exif zip bz2 ldap bcmath calendar mcrypt xsl xmlrpc soap tidy sockets gettext >/dev/null \
-#&& pecl install apcu-5.1.8 \
-#&& docker-php-ext-enable apcu \
+&& pecl install apcu \
+&& docker-php-ext-enable apcu \
 && a2enmod rewrite headers \
+&& a2dismod status \
 && apt-get clean ; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/cache/* /usr/share/doc/*
 
