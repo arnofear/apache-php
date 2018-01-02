@@ -67,6 +67,7 @@ RUN apt-get update \
 && a2dismod status \
 && sed -i 's/^ServerSignature On/ServerSignature Off/' /etc/apache2/conf-available/security.conf \
 && sed -i 's/^ServerTokens OS/ServerTokens Minimal/' /etc/apache2/conf-available/security.conf \
+&& echo -e '[mail function]\nsendmail_path = "/usr/sbin/ssmtp -t"' > /usr/local/etc/php/conf.d/ssmtp.ini \
 && mkdir -p /var/lib/php/sessions /usr/local/etc/php-cli \
 && chmod 1733 /var/lib/php/sessions \
 && ln -sfT /dev/stdout /var/log/cron.log \
