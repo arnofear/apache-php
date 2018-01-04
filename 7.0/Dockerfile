@@ -1,0 +1,93 @@
+FROM php:7.0-apache
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV TZ=Europe/Paris
+# http://pecl.php.net/package/ssh2
+ENV PECL_SSH2_VERSION 1.1.2
+
+RUN apt-get update \
+&& apt-get install --no-install-recommends --no-install-suggests -y \
+    supervisor \
+    rsyslog \
+    cron \
+    ssmtp \
+    jq \
+    libexif-dev \
+    libpng-dev libjpeg-dev libfreetype6-dev libjpeg62-turbo-dev \
+    libmagic-dev \
+    libmagickwand-dev \
+    libgmp-dev \
+    libmcrypt-dev \
+    libbz2-dev \
+    libldap2-dev \
+    libxslt1-dev \
+    libxml2-dev \
+    libtidy-dev \
+    libicu-dev libpq-dev \
+    libc-client-dev libkrb5-dev \
+    libssh2-1 libssh2-1-dev \
+&& ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/local/include/ \
+&& docker-php-ext-configure gmp >/dev/null \
+&& docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/ >/dev/null \
+&& docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ >/dev/null \
+&& docker-php-ext-configure wddx >/dev/null \
+&& docker-php-ext-configure imap --with-kerberos --with-imap-ssl >/dev/null \
+&& docker-php-ext-install -j$(nproc) \
+    bcmath \
+    bz2 \
+    calendar \
+    exif \
+    gd \
+    gettext \
+    gmp \
+    imap \
+    intl \
+    ldap \
+    mcrypt \
+    mysqli \
+    opcache \
+    pdo_mysql \
+    pdo_pgsql \
+    pgsql \
+    shmop sysvmsg sysvsem sysvshm \
+    soap \
+    sockets \
+    tidy \
+    wddx \
+    xmlrpc \
+    xsl \
+    zip >/dev/null \
+&& pecl install \
+    apcu \
+    redis \
+    imagick \
+    ssh2-$PECL_SSH2_VERSION >/dev/null \
+&& docker-php-ext-enable apcu redis imagick ssh2 \
+&& a2enmod rewrite headers \
+&& a2dismod status \
+&& sed -i 's/^ServerSignature On/ServerSignature Off/' /etc/apache2/conf-available/security.conf \
+&& sed -i 's/^ServerTokens OS/ServerTokens Minimal/' /etc/apache2/conf-available/security.conf \
+&& echo -e '[mail function]\nsendmail_path = "/usr/sbin/ssmtp -t"' > /usr/local/etc/php/conf.d/ssmtp.ini \
+&& mkdir -p /var/lib/php/sessions /usr/local/etc/php-cli \
+&& chmod 1733 /var/lib/php/sessions \
+&& ln -sfT /dev/stdout /var/log/cron.log \
+&& echo 'Europe/Paris' > /etc/timezone \
+&& dpkg-reconfigure -f noninteractive tzdata \
+&& rm -f /etc/cron.*/* /etc/ssmtp/ssmtp.conf /usr/sbin/sendmail \
+&& apt-get clean \
+&& dpkg -l | awk '{print $2}' | grep '\-dev' | xargs apt-get remove --purge -y \
+&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/cache/* /usr/share/doc /usr/share/man
+
+COPY php/php.ini /usr/local/etc/php/php.ini
+# /usr/local/bin/php --php-ini /usr/local/etc/php-cli/php.ini -f /var/www/html/cli.php
+COPY php/php-cli.ini /usr/local/etc/php-cli/php.ini
+
+COPY supervisor/supervisord.conf /etc/supervisor/supervisord.conf
+# ATTENTION cette conf execute le script de l'image php:7.1-apache : /usr/local/bin/apache2-foreground
+COPY supervisor/apache2-foreground.conf /etc/supervisor/conf.d/apache2-foreground.conf
+COPY supervisor/rsyslogd.conf /etc/supervisor/conf.d/rsyslogd.conf
+COPY supervisor/cron.conf /etc/supervisor/conf.d/cron.conf
+
+COPY rsyslog.conf /etc/rsyslog.conf
+
+ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
