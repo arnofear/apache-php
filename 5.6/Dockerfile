@@ -63,3 +63,5 @@ RUN apt-get update \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/cache/* /usr/share/doc /usr/share/man
 
 COPY php.ini /usr/local/etc/php/php.ini
+
+HEALTHCHECK --interval=30s --timeout=30s --start-period=0s --retries=3 CMD curl -o /dev/null -sm 10 http://localhost/ || exit 1

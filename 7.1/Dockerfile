@@ -90,6 +90,6 @@ COPY supervisor/cron.conf /etc/supervisor/conf.d/cron.conf
 
 COPY rsyslog.conf /etc/rsyslog.conf
 
-HEALTHCHECK --interval=30s --timeout=30s --start-period=0s --retries=3 CMD curl -o /dev/null -sm 10 http://localhost/ || exit 1
+HEALTHCHECK --interval=30s --timeout=30s --start-period=1s --retries=3 CMD curl -o /dev/null -sm 10 http://localhost/ || exit 1
 
 ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
