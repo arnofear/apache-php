@@ -7,6 +7,10 @@ ENV PECL_APCU_VERSION 4.0.11
 
 RUN apt-get update \
 && apt-get install --no-install-recommends --no-install-suggests -y \
+    supervisor \
+    rsyslog \
+    cron \
+    ssmtp \
     jq \
     libexif-dev \
     libpng-dev libjpeg-dev libfreetype6-dev libjpeg62-turbo-dev \
@@ -54,14 +58,29 @@ RUN apt-get update \
 && a2dismod status \
 && sed -i 's/^ServerSignature On/ServerSignature Off/' /etc/apache2/conf-available/security.conf \
 && sed -i 's/^ServerTokens OS/ServerTokens Minimal/' /etc/apache2/conf-available/security.conf \
-&& mkdir -p /var/lib/php/sessions \
+&& echo '[mail function]\nsendmail_path = "/usr/sbin/ssmtp -t"' > /usr/local/etc/php/conf.d/ssmtp.ini \
+&& mkdir -p /var/lib/php/sessions /usr/local/etc/php-cli \
 && chmod 1733 /var/lib/php/sessions \
+&& ln -sfT /dev/stdout /var/log/cron.log \
 && echo 'Europe/Paris' > /etc/timezone \
 && dpkg-reconfigure -f noninteractive tzdata \
+&& rm -f /etc/cron.*/* /etc/ssmtp/ssmtp.conf /usr/sbin/sendmail \
 && apt-get clean \
 && dpkg -l | awk '{print $2}' | grep '\-dev' | xargs apt-get remove --purge -y \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/cache/* /usr/share/doc /usr/share/man
 
-COPY php.ini /usr/local/etc/php/php.ini
+COPY php/php.ini /usr/local/etc/php/php.ini
+# /usr/local/bin/php --php-ini /usr/local/etc/php-cli/php.ini -f /var/www/html/cli.php
+COPY php/php-cli.ini /usr/local/etc/php-cli/php.ini
+
+COPY supervisor/supervisord.conf /etc/supervisor/supervisord.conf
+# ATTENTION cette conf execute le script de l'image php:7.1-apache : /usr/local/bin/apache2-foreground
+COPY supervisor/apache2-foreground.conf /etc/supervisor/conf.d/apache2-foreground.conf
+COPY supervisor/rsyslogd.conf /etc/supervisor/conf.d/rsyslogd.conf
+COPY supervisor/cron.conf /etc/supervisor/conf.d/cron.conf
+
+COPY rsyslog.conf /etc/rsyslog.conf
 
 HEALTHCHECK --interval=30s --timeout=30s --start-period=1s --retries=3 CMD curl -o /dev/null -sm 10 http://localhost/ || exit 1
+
+ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
