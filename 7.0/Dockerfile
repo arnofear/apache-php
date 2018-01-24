@@ -1,12 +1,13 @@
 FROM php:7.0-apache
 
 ENV DEBIAN_FRONTEND noninteractive
-ENV TZ=Europe/Paris
+
 # http://pecl.php.net/package/ssh2
 ENV PECL_SSH2_VERSION 1.1.2
 
 RUN apt-get update \
 && apt-get install --no-install-recommends --no-install-suggests -y \
+    locales locales-all \
     supervisor \
     rsyslog \
     cron \
@@ -67,8 +68,7 @@ RUN apt-get update \
 && a2dismod status \
 && sed -i 's/^ServerSignature On/ServerSignature Off/' /etc/apache2/conf-available/security.conf \
 && sed -i 's/^ServerTokens OS/ServerTokens Minimal/' /etc/apache2/conf-available/security.conf \
-&& echo '[mail function]' > /usr/local/etc/php/conf.d/ssmtp.ini \
-&& echo 'sendmail_path = "/usr/sbin/ssmtp -t"' >> /usr/local/etc/php/conf.d/ssmtp.ini \
+&& echo '[mail function]\nsendmail_path = "/usr/sbin/ssmtp -t"' > /usr/local/etc/php/conf.d/ssmtp.ini \
 && mkdir -p /var/lib/php/sessions /usr/local/etc/php-cli \
 && chmod 1733 /var/lib/php/sessions \
 && ln -sfT /dev/stdout /var/log/cron.log \
@@ -78,6 +78,11 @@ RUN apt-get update \
 && apt-get clean \
 && dpkg -l | awk '{print $2}' | grep '\-dev' | xargs apt-get remove --purge -y \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/cache/* /usr/share/doc /usr/share/man
+
+ENV TZ=Europe/Paris
+ENV LC_ALL fr_FR.UTF-8
+ENV LANG fr_FR.UTF-8
+ENV LANGUAGE fr_FR.UTF-8
 
 COPY php/php.ini /usr/local/etc/php/php.ini
 # /usr/local/bin/php --php-ini /usr/local/etc/php-cli/php.ini -f /var/www/html/cli.php

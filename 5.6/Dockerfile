@@ -1,12 +1,13 @@
 FROM php:5.6-apache
 
 ENV DEBIAN_FRONTEND noninteractive
-ENV TZ=Europe/Paris
+
 # https://pecl.php.net/package/APCu
 ENV PECL_APCU_VERSION 4.0.11
 
 RUN apt-get update \
 && apt-get install --no-install-recommends --no-install-suggests -y \
+    locales locales-all \
     supervisor \
     rsyslog \
     cron \
@@ -68,6 +69,11 @@ RUN apt-get update \
 && apt-get clean \
 && dpkg -l | awk '{print $2}' | grep '\-dev' | xargs apt-get remove --purge -y \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/cache/* /usr/share/doc /usr/share/man
+
+ENV TZ=Europe/Paris
+ENV LC_ALL fr_FR.UTF-8
+ENV LANG fr_FR.UTF-8
+ENV LANGUAGE fr_FR.UTF-8
 
 COPY php/php.ini /usr/local/etc/php/php.ini
 # /usr/local/bin/php --php-ini /usr/local/etc/php-cli/php.ini -f /var/www/html/cli.php
