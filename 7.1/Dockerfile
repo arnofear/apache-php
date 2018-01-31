@@ -12,6 +12,7 @@ RUN apt-get update \
     rsyslog \
     cron \
     ssmtp \
+    wget \
     jq \
     libexif-dev \
     libpng-dev libjpeg-dev libfreetype6-dev libjpeg62-turbo-dev \
