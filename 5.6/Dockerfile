@@ -41,6 +41,7 @@ RUN apt-get update \
     intl \
     ldap \
     mcrypt \
+    mysql \
     mysqli \
     opcache \
     pdo_mysql \
