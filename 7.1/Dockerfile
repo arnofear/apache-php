@@ -12,7 +12,7 @@ RUN apt-get update \
     rsyslog \
     cron \
     ssmtp \
-    wget iproute2 bind9-host \
+    wget iproute2 bind9-host iputils-ping \
     jq \
     libexif-dev \
     libpng-dev libjpeg-dev libfreetype6-dev libjpeg62-turbo-dev \
@@ -65,7 +65,7 @@ RUN apt-get update \
     imagick \
     ssh2-$PECL_SSH2_VERSION >/dev/null \
 && docker-php-ext-enable apcu redis imagick ssh2 \
-&& a2enmod rewrite headers \
+&& a2enmod rewrite headers ssl \
 && a2dismod status \
 && sed -i 's/^ServerSignature On/ServerSignature Off/' /etc/apache2/conf-available/security.conf \
 && sed -i 's/^ServerTokens OS/ServerTokens Minimal/' /etc/apache2/conf-available/security.conf \
