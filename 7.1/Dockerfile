@@ -86,7 +86,7 @@ ENV LC_ALL fr_FR.UTF-8
 ENV LANG fr_FR.UTF-8
 ENV LANGUAGE fr_FR.UTF-8
 
-COPY sites-enabled/* /etc/apache2/sites-enabled/
+#COPY sites-enabled/* /etc/apache2/sites-enabled/
 
 COPY php/php.ini /usr/local/etc/php/php.ini
 # /usr/local/bin/php --php-ini /usr/local/etc/php-cli/php.ini -f /var/www/html/cli.php
