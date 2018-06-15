@@ -65,6 +65,7 @@ RUN apt-get update \
     imagick \
     ssh2-$PECL_SSH2_VERSION >/dev/null \
 && docker-php-ext-enable apcu redis imagick ssh2 \
+&& a2dissite 000-default.conf >/dev/null \
 && a2enmod rewrite headers ssl \
 && a2dismod status \
 && sed -i 's/^ServerSignature On/ServerSignature Off/' /etc/apache2/conf-available/security.conf \
@@ -84,6 +85,8 @@ ENV TZ=Europe/Paris
 ENV LC_ALL fr_FR.UTF-8
 ENV LANG fr_FR.UTF-8
 ENV LANGUAGE fr_FR.UTF-8
+
+COPY sites-enabled/* /etc/apache2/sites-enabled/
 
 COPY php/php.ini /usr/local/etc/php/php.ini
 # /usr/local/bin/php --php-ini /usr/local/etc/php-cli/php.ini -f /var/www/html/cli.php
