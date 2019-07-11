@@ -58,7 +58,7 @@ RUN apt-get update \
     wddx \
     xmlrpc \
     xsl \
-    zip unzip >/dev/null \
+    zip >/dev/null \
 && pecl install \
     apcu \
     redis \
