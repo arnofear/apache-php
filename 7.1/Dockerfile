@@ -58,7 +58,7 @@ RUN apt-get update \
     wddx \
     xmlrpc \
     xsl \
-    zip >/dev/null \
+    zip unzip >/dev/null \
 && pecl install \
     apcu \
     redis \
@@ -80,6 +80,9 @@ RUN apt-get update \
 && apt-get clean \
 && dpkg -l | awk '{print $2}' | grep '\-dev' | xargs apt-get remove --purge -y \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/cache/* /usr/share/doc /usr/share/man
+&& curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
+&& ln -s $(composer config --global home) /root/composer \
+&& PATH=$PATH:/root/composer/vendor/bin COMPOSER_ALLOW_SUPERUSER=1
 
 ENV TZ=Europe/Paris
 ENV LC_ALL fr_FR.UTF-8
