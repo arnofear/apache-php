@@ -67,6 +67,7 @@ RUN apt-get update \
 && docker-php-ext-enable apcu redis imagick ssh2 \
 && a2enmod rewrite headers ssl \
 && a2dismod status \
+&& a2ensite default-ssl.conf \
 && sed -i 's/^ServerSignature On/ServerSignature Off/' /etc/apache2/conf-available/security.conf \
 && sed -i 's/^ServerTokens OS/ServerTokens Minimal/' /etc/apache2/conf-available/security.conf \
 && echo '[mail function]\nsendmail_path = "/usr/sbin/ssmtp -t"' > /usr/local/etc/php/conf.d/ssmtp.ini \
