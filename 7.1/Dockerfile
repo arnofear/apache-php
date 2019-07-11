@@ -13,7 +13,7 @@ RUN apt-get update \
     cron \
     ssmtp \
     wget iproute2 bind9-host iputils-ping less \
-    jq \
+    jq unzip \
     libexif-dev \
     libpng-dev libjpeg-dev libfreetype6-dev libjpeg62-turbo-dev \
     libmagic-dev \
@@ -81,8 +81,9 @@ RUN apt-get update \
 && dpkg -l | awk '{print $2}' | grep '\-dev' | xargs apt-get remove --purge -y \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/cache/* /usr/share/doc /usr/share/man \
 && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
-&& ln -s $(composer config --global home) /root/composer \
-&& PATH=$PATH:/root/composer/vendor/bin COMPOSER_ALLOW_SUPERUSER=1
+&& ln -s $(composer config --global home) /root/composer
+
+ENV PATH=$PATH:/root/composer/vendor/bin COMPOSER_ALLOW_SUPERUSER=1
 
 ENV TZ=Europe/Paris
 ENV LC_ALL fr_FR.UTF-8
