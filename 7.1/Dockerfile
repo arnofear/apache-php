@@ -18,6 +18,7 @@ RUN apt-get update \
     libpng-dev libjpeg-dev libfreetype6-dev libjpeg62-turbo-dev \
     libmagic-dev \
     libmagickwand-dev \
+    libgraphicsmagick1-dev graphicsmagick \
     libgmp-dev \
     libmcrypt-dev \
     libbz2-dev \
@@ -62,9 +63,9 @@ RUN apt-get update \
 && pecl install \
     apcu \
     redis \
-    imagick \
+    imagick gmagick-beta \
     ssh2-$PECL_SSH2_VERSION >/dev/null \
-&& docker-php-ext-enable apcu redis imagick ssh2 \
+&& docker-php-ext-enable apcu redis imagick gmagick ssh2 \
 && a2enmod rewrite headers ssl \
 && a2dismod status \
 && a2ensite default-ssl.conf \
