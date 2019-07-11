@@ -91,6 +91,8 @@ ENV LANGUAGE fr_FR.UTF-8
 
 #&& a2dissite 000-default.conf >/dev/null \
 #COPY sites-enabled/* /etc/apache2/sites-enabled/
+COPY ssl-cert-snakeoil.key /etc/ssl/private/
+COPY ssl-cert-snakeoil.pem /etc/ssl/certs/
 
 COPY php/php.ini /usr/local/etc/php/php.ini
 # /usr/local/bin/php --php-ini /usr/local/etc/php-cli/php.ini -f /var/www/html/cli.php
