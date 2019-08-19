@@ -8,7 +8,6 @@ RUN apt-get update \
     supervisor \
     rsyslog \
     cron \
-    ssmtp \
     wget iproute2 bind9-host iputils-ping less \
     jq unzip \
     libexif-dev \
@@ -66,13 +65,12 @@ RUN apt-get update \
 && a2ensite default-ssl.conf \
 && sed -i 's/^ServerSignature On/ServerSignature Off/' /etc/apache2/conf-available/security.conf \
 && sed -i 's/^ServerTokens OS/ServerTokens Minimal/' /etc/apache2/conf-available/security.conf \
-&& echo '[mail function]\nsendmail_path = "/usr/sbin/ssmtp -t"' > /usr/local/etc/php/conf.d/ssmtp.ini \
 && mkdir -p /var/lib/php/sessions /usr/local/etc/php-cli \
 && chmod 1733 /var/lib/php/sessions \
 && ln -sfT /dev/stdout /var/log/cron.log \
 && echo 'Europe/Paris' > /etc/timezone \
 && dpkg-reconfigure -f noninteractive tzdata \
-&& rm -f /etc/cron.*/* /etc/ssmtp/ssmtp.conf /usr/sbin/sendmail \
+&& rm -f /etc/cron.*/* \
 && apt-get clean \
 && dpkg -l | awk '{print $2}' | grep '\-dev' | xargs apt-get remove --purge -y \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/cache/* /usr/share/doc /usr/share/man \
