@@ -1,9 +1,6 @@
-FROM php:7.0-apache
+FROM php:7.3-apache
 
 ENV DEBIAN_FRONTEND noninteractive
-
-# http://pecl.php.net/package/ssh2
-ENV PECL_SSH2_VERSION 1.1.2
 
 RUN apt-get update \
 && apt-get install --no-install-recommends --no-install-suggests -y \
@@ -12,8 +9,8 @@ RUN apt-get update \
     rsyslog \
     cron \
     ssmtp \
-    wget \
-    jq \
+    wget iproute2 bind9-host iputils-ping less \
+    jq unzip \
     libexif-dev \
     libpng-dev libjpeg-dev libfreetype6-dev libjpeg62-turbo-dev \
     libmagic-dev \
@@ -27,13 +24,14 @@ RUN apt-get update \
     libtidy-dev \
     libicu-dev libpq-dev \
     libc-client-dev libkrb5-dev \
-    libssh2-1 libssh2-1-dev \
+    libzip-dev \
 && ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/local/include/ \
 && docker-php-ext-configure gmp >/dev/null \
 && docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/ >/dev/null \
 && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ >/dev/null \
 && docker-php-ext-configure wddx >/dev/null \
 && docker-php-ext-configure imap --with-kerberos --with-imap-ssl >/dev/null \
+&& docker-php-ext-configure zip --with-libzip=/usr/include \
 && docker-php-ext-install -j$(nproc) \
     bcmath \
     bz2 \
@@ -45,7 +43,6 @@ RUN apt-get update \
     imap \
     intl \
     ldap \
-    mcrypt \
     mysqli \
     opcache \
     pdo_mysql \
@@ -62,11 +59,11 @@ RUN apt-get update \
 && pecl install \
     apcu \
     redis \
-    imagick \
-    ssh2-$PECL_SSH2_VERSION >/dev/null \
-&& docker-php-ext-enable apcu redis imagick ssh2 \
-&& a2enmod rewrite headers \
+    imagick >/dev/null \
+&& docker-php-ext-enable apcu redis imagick \
+&& a2enmod rewrite headers ssl \
 && a2dismod status \
+&& a2ensite default-ssl.conf \
 && sed -i 's/^ServerSignature On/ServerSignature Off/' /etc/apache2/conf-available/security.conf \
 && sed -i 's/^ServerTokens OS/ServerTokens Minimal/' /etc/apache2/conf-available/security.conf \
 && echo '[mail function]\nsendmail_path = "/usr/sbin/ssmtp -t"' > /usr/local/etc/php/conf.d/ssmtp.ini \
@@ -78,12 +75,21 @@ RUN apt-get update \
 && rm -f /etc/cron.*/* /etc/ssmtp/ssmtp.conf /usr/sbin/sendmail \
 && apt-get clean \
 && dpkg -l | awk '{print $2}' | grep '\-dev' | xargs apt-get remove --purge -y \
-&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/cache/* /usr/share/doc /usr/share/man
+&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/cache/* /usr/share/doc /usr/share/man \
+&& curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
+&& ln -s $(composer config --global home) /root/composer
+
+ENV PATH=$PATH:/root/composer/vendor/bin COMPOSER_ALLOW_SUPERUSER=1
 
 ENV TZ=Europe/Paris
 ENV LC_ALL fr_FR.UTF-8
 ENV LANG fr_FR.UTF-8
 ENV LANGUAGE fr_FR.UTF-8
+
+#&& a2dissite 000-default.conf >/dev/null \
+#COPY sites-enabled/* /etc/apache2/sites-enabled/
+COPY ssl-cert-snakeoil.key /etc/ssl/private/
+COPY ssl-cert-snakeoil.pem /etc/ssl/certs/
 
 COPY php/php.ini /usr/local/etc/php/php.ini
 # /usr/local/bin/php --php-ini /usr/local/etc/php-cli/php.ini -f /var/www/html/cli.php
@@ -100,3 +106,5 @@ COPY rsyslog.conf /etc/rsyslog.conf
 HEALTHCHECK --interval=30s --timeout=30s --start-period=1s --retries=3 CMD curl -o /dev/null -sm 10 http://localhost/ || exit 1
 
 ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+
+EXPOSE 80 443
